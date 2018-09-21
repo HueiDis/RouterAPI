@@ -1,0 +1,16 @@
+{{define "materials"}}
+    <table border="1">
+        <tr>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Value</th>
+        </tr>
+        {{range .}}
+            <tr>
+                <td>{{ .Type }}</td>
+                <td>{{ .Name }}</td>
+                <td>{{ .Value }}</td>
+            </tr>
+        {{end}}
+    </table>
+{{end}}

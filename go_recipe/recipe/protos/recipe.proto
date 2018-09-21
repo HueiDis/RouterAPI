@@ -1,0 +1,138 @@
+syntax="proto3";
+package recipe;
+
+
+// 工廠列舉。 TODO: move to shared library.
+enum FactoryID {
+  KY  = 0;
+  KU  = 1;
+  KS  = 2;
+  KC  = 3;
+  KT  = 4;
+  KV  = 5;
+  KV2 = 6;
+  KI  = 7;
+}
+
+// 數值參數 (value, value+aux) with errorMargin 
+message Param {
+  string unit  = 1;  // PHR, Recycle Percentage, KG, mm, ... 
+  float  value = 2;
+  float  aux   = 3;
+  float  errorMargin = 4; 
+}
+
+// 原材料。
+message Material {
+  string type  = 1;  // TODO: use enum: Polymer, Filler, Activator, Recycled, ...
+  string name  = 2;
+  Param  param = 3;
+}
+
+//  工器具、載具。
+message Tool {
+  string role = 1;  // TODO: use enum: Mold, Cart, ...
+  string id   = 2;
+}
+
+// 配方版本。
+message Version {
+  enum Status {  // 暫定、試做、試產、正式生產、鎖定
+    TEMPORARY    = 0;
+    EXPERIMENTAL = 1;
+    TEST         = 2;
+    PRODUCTION   = 3;
+    DEPRECATED   = 4;
+  }
+  Status status    = 1;
+  string major     = 2;
+  string minor     = 3;
+
+  int64  updatedAt = 4;  // Unix nano time.
+  string updatedBy = 5;
+  string note      = 6;
+}
+
+// 單一工序的定義。
+message Process { 
+  string name = 1;
+
+  message Config {
+    // 符合的機台及工具。
+    repeated string  stations = 1;
+    repeated Tool    tools    = 2;
+
+    // 分階段的材料及控制、檢驗設定。
+    message Step {
+      repeated Material materials = 1;
+
+      message Setting {
+        enum Type {
+          CONTROL_VALUE     = 0;    // control setting = param.value (aux=0.0)
+          CONTROL_RANGE     = 1;    // param.value <= control setting <= param.(value+aux)
+          CONTROL_MODE      = 2;    // 非數值控制設定如: "hi"、"lo"
+
+          // 非控制之檢驗量測標準。
+          MEASUREMENT_VALUE = 100;  // measured ~ param.(value+-errorMargin) (aux=0.0)
+          MEASUREMENT_MAX   = 101;  // measured <= param.value (aux=0.0, errorMargin=0.0)
+          MEASUREMENT_MIN   = 102;  // measured >= param.value (aux=0.0, errorMargin=0.0)
+          MEASUREMENT_RANGE = 103;  // param.value <= measured <= param.(value+aux) (errorMargin=0.0)
+          MEASUREMENT_MODE  = 104;  // 測試符合文字敘述如"未檢出"。
+        }
+        string name  = 2;
+        Type   type  = 1;
+        Param  param = 3;  // OPTIONAL: type為 *_MODE時不應使用。
+        string mode  = 4;  // type為 *_MODE時之值。
+      }
+      repeated Setting settings = 2;
+    }
+    repeated Step steps = 3;
+  }
+  repeated Config configs = 2;
+}
+
+// 配合表: 多個單一工序及異常處理流程。
+message Recipe {
+  string id = 1;
+
+  string productID = 2;
+  FactoryID factory = 3;
+  repeated Version versionHistory = 4;
+
+  // 來源配方。
+  string specID = 5;
+
+  // 配合的工序。e.g., 素煉、加促、…
+  repeated Process processes = 6;
+
+  // 部份檢驗或異常處理流程。
+  message OptionalFlow {
+    string name                = 1;
+    int32  afterProcessID      = 2;  // 此流程發生於上面第幾個工序之後。
+    int32  maxRepetitions      = 3;
+    repeated Process processes = 4;
+  }
+  repeated OptionalFlow optionalFlows = 9;
+}
+
+// 配方表。
+message Spec {
+  string id = 1;
+
+  string productID = 2; 
+  repeated Version versionHistory = 3;
+
+  string parentSpecID = 4;  // 修改自其它配方。若無則留空白。
+ 
+  repeated Material materials = 8;
+  repeated Tool     tools     = 9;
+}
+
+// 匯出資料結構。
+message Dump {
+  repeated Spec   specs           = 1;
+  repeated string activeSpecIDs   = 2;
+
+  repeated Recipe recipes         = 3;
+  repeated string activeRecipeIDs = 4; 
+}

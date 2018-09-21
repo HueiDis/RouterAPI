@@ -1,0 +1,18 @@
+{{define "version_history"}}
+    <table border="1">
+        <tr>
+            <th>Version</th>
+            <th>Date</th>
+            <th>Maintainer</th>
+            <th>Note</th>
+        </tr>
+        {{range .}}
+            <tr>
+                <td>{{ .Status }}-{{ .Major }}-{{ .Minor }}</td>
+                <td>{{ .UpdatedAt }}</td>
+                <td>{{ .UpdatedBy }}</td>
+                <td>{{ .Note }}</td>
+            </tr>
+        {{end}}
+    </table>
+{{end}}

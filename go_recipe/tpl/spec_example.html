@@ -1,0 +1,24 @@
+<html>
+{{template "header" .}}
+<body>
+    <h1>{{ .Title }}</h1>
+
+    {{if .Materials}}
+        <h2>Materials</h2>
+        {{template "materials" .Materials}}
+    {{else}}
+        <h2>No Materials Listed</h2>
+    {{end}}
+
+    {{if .VersionHistory}}
+        <h2>Version History</h2>
+        {{template "version_history" .VersionHistory}}
+    {{else}}
+        <h2>No Version History</h2>
+    {{end}}
+
+    <br>
+
+    {{template "footer"}}
+</body>
+</html>

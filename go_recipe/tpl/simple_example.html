@@ -1,0 +1,13 @@
+<html>
+{{template "header" .}}
+<body>
+    
+    <table border="1">
+        {{range .Rows}}
+            <tr><td>{{.}}</td></tr>
+        {{end}}
+    </table>
+    <br>
+    {{template "footer"}}
+</body>
+</html>
